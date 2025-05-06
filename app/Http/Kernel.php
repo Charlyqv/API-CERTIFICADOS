@@ -3,6 +3,8 @@
 namespace App\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
+use Fruitcake\Cors\HandleCors;
+use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
 
 class Kernel extends HttpKernel
 {
