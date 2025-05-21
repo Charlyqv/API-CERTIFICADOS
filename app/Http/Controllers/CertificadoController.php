@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use PhpCfdi\Credentials\Credential;
 use Illuminate\Support\Facades\File;
 use setasign\Fpdi\Fpdi;
+use PhpCfdi\Credentials\Exceptions\InvalidCertificateException;
+use PhpCfdi\Credentials\Exceptions\SignatureException;
 
 class CertificadoController extends Controller
 {
@@ -22,7 +24,7 @@ class CertificadoController extends Controller
         $content_pdf = File::get($request->file('archivo')->getRealPath());
     
         $passPhrase = $request->contrasena;
-
+        
         try {
             $fiel = Credential::openFiles(
                 'file://'.$request->cer->getRealPath(),
@@ -40,15 +42,15 @@ class CertificadoController extends Controller
             }
 
             // Validamos si la firma es una firma real, ya sea fiel 
-            if(!$fiel->isFiel())
+            if(!$fiel->isFiel()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'El certificado no es FIEL válido.'
                 ], 400);
+            }
                 
             $firma = $fiel->sign($content_pdf);
             $firma_b64 = base64_encode($firma);
-    
     
             $pdf = new Fpdi();
             $pdf->SetFont('helvetica','',6);
@@ -75,7 +77,7 @@ class CertificadoController extends Controller
             return response($pdfContent)
                 ->header('Content-Type', 'application/pdf')
                 ->header('Content-Disposition', 'inline; filename="archivo_firmado.pdf"');
-            
+
         } catch (\Throwable $th) {
             return response()->json([
                 'success' => false,
@@ -87,3 +89,13 @@ class CertificadoController extends Controller
     }
 }
 
+// return response()->json([
+            //     'success' => true,
+            //     'message' => 'Certificado válido.',
+            //     'rfc' => $certificado->rfc(),
+            //     'nombre' => $certificado->legalName(),
+            //     'valido_desde' => $certificado->validFrom(),
+            //     'valido_hasta' => $certificado->validTo(),
+            // ]);
+            
+            // 'numero_serie' => $certificado->serialNumber(),
